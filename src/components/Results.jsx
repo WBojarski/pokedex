@@ -96,6 +96,7 @@ const Results = ({ term }) => {
                 {pokemonData.map((pokemon, i) => {
                   return <Card key={i} pokemon={pokemon} />
                 })}
+
               </SimpleGrid>
             </div>
             <div className="btn">
