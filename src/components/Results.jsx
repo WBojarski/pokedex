@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Heading, SimpleGrid } from "@chakra-ui/react"
+import { Box, Heading, SimpleGrid, Button, Center, Input, Image } from "@chakra-ui/react"
 import Card from "../components/Card"
 import { getPokemon, getAllPokemon } from './services/pokemon';
+import logo from "../img/logo.png"
 
 
-const Results = ({term}) => {
-
-    const [pokemonData, setPokemonData] = useState([])
+const Results = ({ term }) => {
+  const [initialData, setInitialData] = useState([])
+  const [pokemonData, setPokemonData] = useState([])
   const [nextUrl, setNextUrl] = useState('');
   const [prevUrl, setPrevUrl] = useState('');
   const [loading, setLoading] = useState(true);
-  const initialURL = 'https://pokeapi.co/api/v2/pokemon'
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const initialURL = 'https://pokeapi.co/api/v2/pokemon?limit=200&offset=0'
 
   useEffect(() => {
     async function fetchData() {
@@ -19,14 +22,25 @@ const Results = ({term}) => {
       setPrevUrl(response.previous);
       await loadPokemon(response.results);
       setLoading(false);
-      
+      console.log()
+
     }
     fetchData();
+
   }, [])
 
-  useEffect(()=> {
+  useEffect(() => {
+    if (searchTerm) {
+      let filteredData = initialData.filter(pokemon => pokemon.name.includes(searchTerm))
+      setPokemonData(filteredData)
+      console.log(pokemonData)
 
-  }, [term])
+    } else {
+      setPokemonData(initialData)
+    }
+
+  }, [searchTerm])
+
   const next = async () => {
     setLoading(true);
     let data = await getAllPokemon(nextUrl);
@@ -51,42 +65,52 @@ const Results = ({term}) => {
       let pokemonRecord = await getPokemon(pokemon)
       return pokemonRecord
     }))
+    setInitialData(_pokemonData)
     setPokemonData(_pokemonData);
+    console.log(pokemonData)
   }
-    return (
+
+
+
+  return (
+    <div>
+      <Box mx="auto" width="90%" marginTop={20}>
+        <Image mx="auto" src={logo} alt="" />
         <div>
+          <Center marginTop={14} display="flex" flexDirection="column">
+            <Input variant="flushed" width="40%" outline="none" padding="10px" outlineOffset="none" border="2px solid #ced4da " color="gray" borderRadius="10px" onChange={e => setSearchTerm(e.target.value)} placeholder="Type in search term" />
+            <Heading as="h2" marginTop={14}>
+              Results
+            </Heading>
+          </Center>
+          {!loading && <>
             <Box mx="auto" width="90%" marginTop={20}>
-                <Heading as="h2"> 
-
-                Results
-                </Heading>
-
-                    
-                    <div>
-        {loading ? <h1 style={{ textAlign: 'center' }}>Loading...</h1> : (
-          <>
+            </Box>
             <div className="btn">
-              <button onClick={prev}>Prev</button>
-              <button onClick={next}>Next</button>
+              <Button colorScheme="blue" onClick={prev}>Prev</Button>
+              <Button colorScheme="blue" marginLeft="10px" onClick={next}>Next</Button>
             </div>
             <div className="grid-container">
-                <SimpleGrid width="100%" minChildWidth="350px" spacing="40px">
-                 {pokemonData.map((pokemon, i) => {
-                    return <Card key={i} pokemon={pokemon} />
+              <SimpleGrid width="100%" columns minChildWidth="350px" spacing="20px">
+
+                {pokemonData.map((pokemon, i) => {
+                  return <Card key={i} pokemon={pokemon} />
                 })}
-                </SimpleGrid>
-             
+              </SimpleGrid>
             </div>
             <div className="btn">
-              <button onClick={prev}>Prev</button>
-              <button onClick={next}>Next</button>
+              <Button colorScheme="blue" onClick={prev}>Prev</Button>
+              <Button colorScheme="blue" marginLeft="10px" onClick={next}>Next</Button>
             </div>
           </>
-        )}
-      </div>
-            </Box>
+          }
+          {loading && <h1 style={{ textAlign: 'center' }}>Loading...</h1>}
+
+
         </div>
-    )
+      </Box>
+    </div>
+  )
 }
 
 export default Results
